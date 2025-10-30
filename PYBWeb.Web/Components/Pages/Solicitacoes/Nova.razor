@@ -1,0 +1,642 @@
+@page "/solicitacoes/nova"
+@using PYBWeb.Web.Models
+@using PYBWeb.Domain.Entities
+@using PYBWeb.Domain.Interfaces
+@using PYBWeb.Domain.Enums
+@inject ISolicitacaoRepository SolicitacaoRepository
+@inject IAmbienteCicsService AmbienteCicsService
+@inject ISolicitacoesCics2025Service SolicitacoesCics2025Service
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Nova Solicitação CICS - PYB</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 text-primary">
+                <i class="bi bi-plus-circle"></i> Nova Solicitação CICS
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/solicitacoes" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Dados da Solicitação</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@model" OnValidSubmit="@SubmitForm" OnInvalidSubmit="@OnInvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger mb-3" />
+
+                        @if (!string.IsNullOrEmpty(mensagemErro))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> @mensagemErro
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(mensagemSucesso))
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i> @mensagemSucesso
+                            </div>
+                        }
+
+                        <!-- Campos Comuns -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted border-bottom pb-2 mb-3">
+                                    <i class="bi bi-gear"></i> Informações Gerais
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+
+                            <div class="col-md-3">
+                                <label for="css" class="form-label">Sigla do Sistema <span class="text-danger">*</span></label>
+                                <InputText id="css"
+                                        class="form-control"
+                                        @bind-Value="model.Css"
+                                        @bind-Value:after="UpCssChanged"
+                                        placeholder="3 caracteres"
+                                        maxlength="3"
+                                        style="text-transform:uppercase;" />
+                            </div>
+
+
+
+
+                            <div class="col-md-3">
+                                <label for="ambiente" class="form-label">Ambiente CICS <span class="text-danger">*</span></label>
+                                <select id="ambiente" class="form-select" @bind="model.AmbienteId" @bind:after="OnAmbienteChanged">
+                                    <option value="0">Selecione o ambiente...</option>
+                                    @if (IsAmbienteTodosDisponivel())
+                                    {
+                                        <option value="-1">TODOS - Todos os ambientes PXU/PXS</option>
+                                    }
+                                    @foreach (var ambiente in ambientes)
+                                    {
+                                        <option value="@ambiente.Id">@ambiente.IdChave - @ambiente.Descricao</option>
+                                    }
+                                </select>
+                            </div>
+                <!--        <div class="col-md-3">
+                                <label for="appli" class="form-label">Nome do Ambiente</label>
+                                <InputText id="appli" class="form-control" @bind-Value="model.Appli" readonly />
+                            </div>     -->
+                            <div class="col-md-3">
+                                <label for="usuario" class="form-label">Matrícula Solicitante <span class="text-danger">*</span></label>
+                                <InputText id="usuario" class="form-control" @bind-Value="model.Usuario" placeholder="Matrícula" />
+                            </div>
+                        </div>
+
+
+
+                        <!-- Seleção do Tipo de Tabela -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted border-bottom pb-2 mb-3">
+                                    <i class="bi bi-table"></i> Tipo de Tabela CICS
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tipoTabela" class="form-label">Selecione o Tipo de Tabela <span class="text-danger">*</span></label>
+                                <select id="tipoTabela" class="form-select" @bind="model.TipoTabela" @bind:after="OnTipoTabelaChanged">
+                                    <option value="">Selecione o tipo de tabela...</option>
+                                    <option value="FCT">FCT - File Control Table</option>
+                                    <option value="DCT">DCT - Destination Control Table</option>
+                                    <option value="PCT">PCT - Program Control Table</option>
+                                    <option value="PPT">PPT - Processing Program Table</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Campos Específicos FCT -->
+                        @if (model.TipoTabela == "FCT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-file-earmark"></i> Configurações FCT - File Control Table
+                                    </h6>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="nameArq" class="form-label">Nome do Arquivo</label>
+                                    <InputText id="nameArq" class="form-control" @bind-Value="model.NameArq" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="type" class="form-label">Tipo</label>
+                                    <select id="type" class="form-select" @bind="model.Type">
+                                        <option value="">Selecione...</option>
+                                        <option value="LOCAL">LOCAL</option>
+                                        <option value="REMOTO">REMOTO</option>
+                                        <option value="PADRÃO BNO">PADRÃO BNO</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="dsnameArq" class="form-label">DSNAME do Arquivo</label>
+                                    <InputText id="dsnameArq" class="form-control" @bind-Value="model.DsnameArq" />
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="estInit" class="form-label">Estado Inicial</label>
+                                    <select id="estInit" class="form-select" @bind="model.EstInit">
+                                        <option value="">Selecione...</option>
+                                        <option value="ENABLE">ENABLE</option>
+                                        <option value="DISABLE">DISABLE</option>
+                                        <option value="UNENABLED">UNENABLED</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="service" class="form-label">Serviço</label>
+                                    <select id="service" class="form-select" @bind="model.Service">
+                                        <option value="">Selecione...</option>
+                                        <option value="ADD">ADD</option>
+                                        <option value="BROWSE">BROWSE</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="READ">READ</option>
+                                        <option value="UPDATE">UPDATE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="numStrng" class="form-label">Número de String</label>
+                                    <InputText id="numStrng" class="form-control" @bind-Value="model.NumStrng" />
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Campos Específicos DCT -->
+                        @if (model.TipoTabela == "DCT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-diagram-3"></i> Configurações DCT - Destination Control Table
+                                    </h6>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="fileName" class="form-label">Nome do Arquivo</label>
+                                    <InputText id="fileName" class="form-control" @bind-Value="model.FileName" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="queueType" class="form-label">Tipo de Fila</label>
+                                    <select id="queueType" class="form-select" @bind="model.QueueType">
+                                        <option value="">Selecione...</option>
+                                        <option value="EXTRA">EXTRA</option>
+                                        <option value="INTRA">INTRA</option>
+                                        <option value="INDIRECT">INDIRECT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="ddname" class="form-label">DDNAME</label>
+                                    <InputText id="ddname" class="form-control" @bind-Value="model.Ddname" />
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="dsname" class="form-label">DSNAME</label>
+                                    <InputText id="dsname" class="form-control" @bind-Value="model.Dsname" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="estFile" class="form-label">Estado do Arquivo</label>
+                                    <select id="estFile" class="form-select" @bind="model.EstFile">
+                                        <option value="">Selecione...</option>
+                                        <option value="INITIAL">INITIAL</option>
+                                        <option value="DEFERRED">DEFERRED</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="formReg" class="form-label">Formato do Registro</label>
+                                    <select id="formReg" class="form-select" @bind="model.FormReg">
+                                        <option value="">Selecione...</option>
+                                        <option value="FIXED">FIXED</option>
+                                        <option value="VARIABLE">VARIABLE</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="formReg2" class="form-label">Formato do Registro 2</label>
+                                    <select id="formReg2" class="form-select" @bind="model.FormReg2">
+                                        <option value="">Selecione...</option>
+                                        <option value="BLOCK">BLOCK</option>
+                                        <option value="UNBLOCK">UNBLOCK</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="formReg3" class="form-label">Formato do Registro 3</label>
+                                    <select id="formReg3" class="form-select" @bind="model.FormReg3">
+                                        <option value="">Selecione...</option>
+                                        <option value="ASA">ASA</option>
+                                        <option value="MAC">MAC</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fileType" class="form-label">Tipo de Arquivo</label>
+                                    <select id="fileType" class="form-select" @bind="model.FileType">
+                                        <option value="">Selecione...</option>
+                                        <option value="OUTPUT">OUTPUT</option>
+                                        <option value="INPUT">INPUT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="regSize" class="form-label">Tamanho do Registro</label>
+                                    <InputText id="regSize" class="form-control" @bind-Value="model.RegSize" />
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="blockSize" class="form-label">Tamanho do Bloco</label>
+                                    <InputText id="blockSize" class="form-control" @bind-Value="model.BlockSize" />
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Campos Específicos PCT -->
+                        @if (model.TipoTabela == "PCT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-cpu"></i> Configurações PCT - Program Control Table
+                                    </h6>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="nameTrans" class="form-label">Nome da Transação</label>
+                                    <InputText id="nameTrans" class="form-control" @bind-Value="model.NameTrans" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="activeSoft" class="form-label">Programa para Ativar</label>
+                                    <InputText id="activeSoft" class="form-control" @bind-Value="model.ActiveSoft" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="twaSize" class="form-label">TWA Size</label>
+                                    <InputText id="twaSize" class="form-control" @bind-Value="model.TwaSize" />
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="estInitPct" class="form-label">Estado Inicial</label>
+                                    <select id="estInitPct" class="form-select" @bind="model.EstInit">
+                                        <option value="">Selecione...</option>
+                                        <option value="ENABLE">ENABLE</option>
+                                        <option value="DISABLE">DISABLE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="dataAllocation" class="form-label">Alocação de Dados</label>
+                                    <select id="dataAllocation" class="form-select" @bind="model.DataAllocation">
+                                        <option value="">Selecione...</option>
+                                        <option value="ANY">ANY</option>
+                                        <option value="BELOW">BELOW</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="prev" class="form-label">Data de Previsão</label>
+                                    <InputText id="prev" class="form-control" @bind-Value="model.Prev" placeholder="dd/MM/yyyy" />
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="coment" class="form-label">Descrição</label>
+                                    <InputTextArea id="coment" class="form-control" @bind-Value="model.Coment" rows="3" />
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Campos Específicos PPT -->
+                        @if (model.TipoTabela == "PPT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-code-square"></i> Configurações PPT - Processing Program Table
+                                    </h6>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="nameSoft" class="form-label">Nome do Software</label>
+                                    <InputText id="nameSoft" class="form-control" @bind-Value="model.NameSoft" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="linkName" class="form-label">Nome do Link</label>
+                                    <InputText id="linkName" class="form-control" @bind-Value="model.LinkName" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="language" class="form-label">Linguagem</label>
+                                    <select id="language" class="form-select" @bind="model.Language">
+                                        <option value="">Selecione...</option>
+                                        <option value="COBOL">COBOL</option>
+                                        <option value="ASSEMBLER">ASSEMBLER</option>
+                                        <option value="C">C</option>
+                                        <option value="PLI">PLI</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="typePpt" class="form-label">Tipo</label>
+                                    <select id="typePpt" class="form-select" @bind="model.TypePpt">
+                                        <option value="">Selecione...</option>
+                                        <option value="PROGRAMA">PROGRAMA</option>
+                                        <option value="MAPA">MAPA</option>
+                                        <option value="TABELA">TABELA</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="estInitPpt" class="form-label">Estado Inicial</label>
+                                    <select id="estInitPpt" class="form-select" @bind="model.EstInit">
+                                        <option value="">Selecione...</option>
+                                        <option value="ENABLE">ENABLE</option>
+                                        <option value="DISABLE">DISABLE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="dataAllocationPpt" class="form-label">Alocação de Dados</label>
+                                    <select id="dataAllocationPpt" class="form-select" @bind="model.DataAllocation">
+                                        <option value="">Selecione...</option>
+                                        <option value="ANY">ANY</option>
+                                        <option value="BELOW">BELOW</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="autoAlt" class="form-label">Auto Alteração</label>
+                                    <select id="autoAlt" class="form-select" @bind="model.AutoAlt">
+                                        <option value="">Selecione...</option>
+                                        <option value="SIM">SIM</option>
+                                        <option value="NÃO">NÃO</option>
+                                    </select>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Botões -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr />
+                                <div class="d-flex justify-content-between">
+                                    <a href="/solicitacoes" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Criar Solicitação
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private NovaSolicitacaoCicsModel model = new();
+    private List<AmbienteCics> ambientes = new();
+    private string mensagemErro = "";
+    private string mensagemSucesso = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carrega os ambientes disponíveis
+        await CarregarAmbientesAsync();
+    }
+
+    private async Task CarregarAmbientesAsync()
+    {
+        try
+        {
+            var ambientesObtidos = await AmbienteCicsService.ObterAmbientesAtivosAsync();
+            ambientes = ambientesObtidos.ToList();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Implementar tratamento de erro
+            Console.WriteLine($"Erro ao carregar ambientes: {ex.Message}");
+            ambientes = new List<AmbienteCics>();
+        }
+    }
+
+    private async Task OnAmbienteChanged()
+    {
+        if (model.AmbienteId > 0)
+        {
+            var ambienteSelecionado = await AmbienteCicsService.ObterAmbientePorIdAsync(model.AmbienteId);
+            if (ambienteSelecionado != null)
+            {
+                model.Appli = ambienteSelecionado.IdChave;
+            }
+        }
+        else if (model.AmbienteId == -1) // Opção "TODOS"
+        {
+            model.Appli = "TODOS";
+        }
+        else
+        {
+            model.Appli = "";
+        }
+    }
+
+    private void UpCssChanged()
+                                {
+                                    if (!string.IsNullOrEmpty(model.Css))
+                                    {
+                                        model.Css = model.Css.ToUpperInvariant();
+                                    }
+                                }
+
+                                class MyModel
+                                {
+                                    public string Css { get; set; }
+                                }
+
+    private void OnCssChanged()
+    {
+        // Força atualização da interface quando CSS muda
+        StateHasChanged();
+    }
+
+    private bool IsAmbienteTodosDisponivel()
+    {
+        return !string.IsNullOrEmpty(model.Css) && 
+               (model.Css.ToUpper() == "PXU" || model.Css.ToUpper() == "PXS");
+    }
+
+    private void OnTipoTabelaChanged()
+    {
+        // Limpa os campos específicos quando muda o tipo de tabela
+        LimparCamposEspecificos();
+    }
+
+    private void LimparCamposEspecificos()
+    {
+        // FCT
+        model.NameArq = null;
+        model.Type = null;
+        model.DsnameArq = null;
+        model.EstInit = null;
+        model.Service = null;
+        model.NumStrng = null;
+        
+        // DCT
+        model.FileName = null;
+        model.QueueType = null;
+        model.Ddname = null;
+        model.Dsname = null;
+        model.EstFile = null;
+        model.FormReg = null;
+        model.FormReg2 = null;
+        model.FormReg3 = null;
+        model.FileType = null;
+        model.RegSize = null;
+        model.BlockSize = null;
+        
+        // PCT
+        model.NameTrans = null;
+        model.ActiveSoft = null;
+        model.TwaSize = "0";
+        model.Coment = null;
+        model.Prev = null;
+        model.DataAllocation = null;
+        
+        // PPT
+        model.NameSoft = null;
+        model.LinkName = null;
+        model.Language = null;
+        model.TypePpt = null;
+        model.AutoAlt = null;
+    }
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            Console.WriteLine("=== INICIANDO SUBMISSÃO DO FORMULÁRIO ===");
+            Console.WriteLine($"Ambiente: {model.AmbienteId}");
+            Console.WriteLine($"Usuario: {model.Usuario}");
+            Console.WriteLine($"CSS: {model.Css}");
+            Console.WriteLine($"TipoTabela: {model.TipoTabela}");
+            
+            // Mapeia o modelo do formulário para a entidade
+            var solicitacao = new SolicitacaoCics2025
+            {
+                // Campos gerais
+                AmbienteId = model.AmbienteId,
+                Appli = model.Appli,
+                Usuario = model.Usuario,
+                Css = model.Css,
+                TipoTabela = model.TipoTabela,
+                Status = "Pendente",
+                DataSolicitacao = DateTime.Now,
+                
+                // Campos FCT
+                NameArq = model.NameArq,
+                Type = model.Type,
+                DsnameArq = model.DsnameArq,
+                EstInit = model.EstInit,
+                Service = model.Service,
+                NumStrng = model.NumStrng,
+                
+                // Campos DCT
+                FileName = model.FileName,
+                QueueType = model.QueueType,
+                Ddname = model.Ddname,
+                Dsname = model.Dsname,
+                EstFile = model.EstFile,
+                FormReg = model.FormReg,
+                FormReg2 = model.FormReg2,
+                FormReg3 = model.FormReg3,
+                FileType = model.FileType,
+                RegSize = model.RegSize,
+                BlockSize = model.BlockSize,
+                
+                // Campos PCT
+                NameTrans = model.NameTrans,
+                ActiveSoft = model.ActiveSoft,
+                TwaSize = model.TwaSize,
+                Coment = model.Coment,
+                Prev = model.Prev,
+                DataAllocation = model.DataAllocation,
+                
+                // Campos PPT
+                NameSoft = model.NameSoft,
+                LinkName = model.LinkName,
+                Language = model.Language,
+                TypePpt = model.TypePpt,
+                AutoAlt = model.AutoAlt
+            };
+            
+            Console.WriteLine("=== CHAMANDO SERVIÇO PARA SALVAR ===");
+            
+            // Salva a solicitação no banco dados2025.db
+            var solicitacaoSalva = await SolicitacoesCics2025Service.SalvarSolicitacaoAsync(solicitacao);
+            
+            Console.WriteLine($"=== SOLICITAÇÃO SALVA COM SUCESSO: {solicitacaoSalva.NumeroSolicitacao} ===");
+            
+            mensagemSucesso = $"Solicitação {solicitacaoSalva.NumeroSolicitacao} criada com sucesso!";
+            mensagemErro = "";
+            
+            // Aguarda um pouco para mostrar a mensagem antes de redirecionar
+            StateHasChanged();
+            await Task.Delay(2000);
+            
+            // Redireciona para a lista de solicitações
+            Navigation.NavigateTo("/solicitacoes");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== ERRO AO SALVAR SOLICITAÇÃO ===");
+            Console.WriteLine($"Erro: {ex.Message}");
+            Console.WriteLine($"StackTrace: {ex.StackTrace}");
+            
+            mensagemErro = $"Erro ao salvar solicitação: {ex.Message}";
+            mensagemSucesso = "";
+            
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+        }
+    }
+
+    private void OnInvalidSubmit()
+    {
+        Console.WriteLine("=== FORMULÁRIO INVÁLIDO ===");
+        mensagemErro = "Por favor, preencha todos os campos obrigatórios!";
+        mensagemSucesso = "";
+        StateHasChanged();
+    }
+}
