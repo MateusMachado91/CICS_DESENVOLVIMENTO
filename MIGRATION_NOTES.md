@@ -42,14 +42,14 @@ This document describes the changes made to remove INI configuration support and
 
 **DataPathHelper Methods:**
 ```csharp
+// Returns PastaData from config or defaults to "../DATA"
 public static string GetPastaData(IConfiguration configuration)
-    // Returns PastaData from config or defaults to "../DATA"
 
+// Returns full path to database file in DATA folder
 public static string GetDatabasePath(IConfiguration configuration, string filename)
-    // Returns full path to database file in DATA folder
 
+// Returns formatted SQLite connection string
 public static string GetConnectionString(IConfiguration configuration, string filename)
-    // Returns formatted SQLite connection string
 ```
 
 **Modified Files:**
@@ -133,4 +133,4 @@ If these changes need to be reverted:
 3. Restore original hardcoded paths in service and utility files
 4. Remove DataPathHelper.cs
 
-The entities and configurations can be recovered from commit history before commit `4e17628`.
+The entities and configurations can be recovered from git history by checking out commits before this migration.
