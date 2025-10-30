@@ -27,19 +27,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\E38235\\.nuget\\packages\\": {}
+    "/home/runner/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\E38235\\Documents\\PYBWeb.Application\\PYBWeb.Application.csproj",
+      "projectUniqueName": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Application/PYBWeb.Application.csproj",
       "projectName": "PYBWeb.Application",
-      "projectPath": "C:\\Users\\E38235\\Documents\\PYBWeb.Application\\PYBWeb.Application.csproj",
-      "packagesPath": "C:\\Users\\E38235\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\E38235\\Documents\\PYBWeb.Application\\obj\\",
+      "projectPath": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Application/PYBWeb.Application.csproj",
+      "packagesPath": "/home/runner/.nuget/packages/",
+      "outputPath": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Application/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\E38235\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/runner/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -51,8 +51,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj": {
-              "projectPath": "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj"
+            "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj": {
+              "projectPath": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj"
             }
           }
         }
@@ -61,7 +61,13 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -82,7 +88,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.121/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj": {}
+    "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj": {}
   },
   "projects": {
-    "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj": {
+    "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj",
+        "projectUniqueName": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj",
         "projectName": "PYBWeb.Domain",
-        "projectPath": "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\PYBWeb.Domain.csproj",
-        "packagesPath": "C:\\Users\\E38235\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\E38235\\Documents\\PYBWeb.Domain\\obj\\",
+        "projectPath": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/PYBWeb.Domain.csproj",
+        "packagesPath": "/home/runner/.nuget/packages/",
+        "outputPath": "/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\E38235\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/runner/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,7 +32,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -53,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.121/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PYBWeb.Infrastructure", "PY
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PYBWeb.Web", "PYBWeb.Web\PYBWeb.Web.csproj", "{B4B814D2-BA6E-41BD-8E27-2F292DE9AB76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PYBWeb.Tests", "PYBWeb.Tests\PYBWeb.Tests.csproj", "{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,18 +69,6 @@ Global
 		{B4B814D2-BA6E-41BD-8E27-2F292DE9AB76}.Release|x64.Build.0 = Release|Any CPU
 		{B4B814D2-BA6E-41BD-8E27-2F292DE9AB76}.Release|x86.ActiveCfg = Release|Any CPU
 		{B4B814D2-BA6E-41BD-8E27-2F292DE9AB76}.Release|x86.Build.0 = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|x64.Build.0 = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Debug|x86.Build.0 = Debug|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|x64.ActiveCfg = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|x64.Build.0 = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|x86.ActiveCfg = Release|Any CPU
-		{32D6A1C9-90D5-49F0-BD7D-506204D29ED3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
