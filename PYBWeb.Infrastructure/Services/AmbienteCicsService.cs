@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PYBWeb.Domain.Entities;
 using PYBWeb.Domain.Interfaces;
 using PYBWeb.Infrastructure.Data;
+using PYBWeb.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace PYBWeb.Infrastructure.Services;
@@ -166,8 +167,6 @@ public class AmbienteCicsService : IAmbienteCicsService
 
     private string ObterConnectionString()
     {
-        var pastaData = _configuration.GetValue<string>("PastaData") ?? "../DATA";
-        var caminhoCompleto = Path.GetFullPath(Path.Combine(pastaData, "ambiente.db"));
-        return $"Data Source={caminhoCompleto}";
+        return DataPathHelper.GetConnectionString(_configuration, "ambiente.db");
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PYBWeb.Domain.Entities;
 using PYBWeb.Domain.Interfaces;
 using PYBWeb.Infrastructure.Data;
+using PYBWeb.Infrastructure.Helpers;
 
 namespace PYBWeb.Infrastructure.Services;
 
@@ -315,8 +316,6 @@ public class SolicitacoesCics2025Service : ISolicitacoesCics2025Service
 
     private string ObterConnectionString()
     {
-        var pastaData = _configuration.GetValue<string>("PastaData") ?? "../DATA";
-        var caminhoCompleto = Path.GetFullPath(Path.Combine(pastaData, "dados2025.db"));
-        return $"Data Source={caminhoCompleto}";
+        return DataPathHelper.GetConnectionString(_configuration, "dados2025.db");
     }
 }

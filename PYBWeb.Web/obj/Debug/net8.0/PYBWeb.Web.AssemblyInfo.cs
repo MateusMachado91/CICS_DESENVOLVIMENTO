@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PYBWeb.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91f57ac90242bd4375d12b57d3a4e4d3160d359a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fec8a2c73831a5712a292f22bca205d5dbf1aebc")]
 [assembly: System.Reflection.AssemblyProductAttribute("PYBWeb.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PYBWeb.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

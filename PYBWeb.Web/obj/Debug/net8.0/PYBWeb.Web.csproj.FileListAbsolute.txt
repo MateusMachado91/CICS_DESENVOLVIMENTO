@@ -367,3 +367,5 @@ C:/Users/E38235/Documents/PYBWeb.Web/obj/Debug/net8.0/ref/PYBWeb.Web.dll
 /home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Web/obj/Debug/net8.0/PYBWeb.Web.pdb
 /home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Web/obj/Debug/net8.0/PYBWeb.Web.genruntimeconfig.cache
 /home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Web/obj/Debug/net8.0/ref/PYBWeb.Web.dll
+/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Web/bin/Debug/net8.0/Microsoft.Extensions.Configuration.FileExtensions.dll
+/home/runner/work/CICS_DESENVOLVIMENTO/CICS_DESENVOLVIMENTO/PYBWeb.Web/bin/Debug/net8.0/Microsoft.Extensions.Configuration.Json.dll

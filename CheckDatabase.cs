@@ -1,7 +1,16 @@
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+using PYBWeb.Infrastructure.Helpers;
+
+// Carregar configuração
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
 
 // Caminho para o banco dados2025.db
-var connectionString = "Data Source=E:\\Mateus\\Meus Documentos\\PYB\\DATA\\dados2025.db";
+var connectionString = DataPathHelper.GetConnectionString(configuration, "dados2025.db");
 
 try
 {
