@@ -10,10 +10,8 @@ public interface ILegacyDataMigrationService
     /// </summary>
     Task<Dictionary<string, object>> AnalisarEstruturaBancosAsync();
     
-    /// <summary>
-    /// Importa dados dos usuários/colaboradores do banco legado
-    /// </summary>
-    Task<bool> ImportarUsuariosAsync();
+    // TODO: ImportarUsuariosAsync removed - Usuario entity no longer exists
+    // If user import is needed in the future, consider alternative approach
     
     /// <summary>
     /// Importa dados das solicitações do banco legado

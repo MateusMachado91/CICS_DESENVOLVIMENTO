@@ -1,8 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PYBWeb.Domain.Entities;
 using PYBWeb.Infrastructure.Data;
+using PYBWeb.Infrastructure.Helpers;
 
-var connectionString = "Data Source=E:\\Mateus\\Meus Documentos\\PYB\\DATA\\ambiente.db";
+// Carregar configuração
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
+var connectionString = DataPathHelper.GetConnectionString(configuration, "ambiente.db");
 using var context = new AmbienteDbContext(connectionString);
 
 // Verificar se já existem dados
