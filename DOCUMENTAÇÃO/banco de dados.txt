@@ -1,0 +1,91 @@
+essa parte todos tem em comum, ficara visível sempre, depois que escolher a tabela (FCT, DCT, PCT e PPT) apatecera o restante de acordo com o que foi escolhido
+
+SITUACAO.......................................TEXT – (CADASTRADO/A CADASTRAR)
+APPLI..............................................TEXT - (AMIENTE CICS)
+USUARIO.........................................TEXT - (MATRICULA SOLICITANTE)
+DIA_HORA ......................................TEXT - (DIA E HORA DA SOLICITAÇÃO)
+OPERACAO.....................................TEXT - (EXCLUIR/ALTERAR)
+RESPONSAVEL................................TEXT - (MATRICULA DO RESPONSSAVEL)
+DIA_HORA_EFETIVAÇÃO..................TEXT - (DIA E HORA DA EFETIVAÇÃO) 
+CSS................................................(CHAR 3) - (SIGLA DO SISTEMA)
+
+
+segue as tabelas, nome como está no banco de dados, dados2025.db .... texte ... e por último como vai aparecer visualmente para o usuario
+
+FCT
+TABELA (FCT)..........PRIMARY KEY
+SITUACAO.......................................TEXT – (CADASTRADO/A CADASTRAR)
+APPLI..............................................TEXT - (AMIENTE CICS)
+USUARIO.........................................TEXT - (MATRICULA SOLICITANTE)
+DIA_HORA ......................................TEXT - (DIA E HORA DA SOLICITAÇÃO)
+OPERACAO.....................................TEXT - (EXCLUIR/ALTERAR)
+RESPONSAVEL................................TEXT - (MATRICULA DO RESPONSSAVEL)
+DIA_HORA_EFETIVAÇÃO..................TEXT – (DIA E HORA DA EFETIVAÇÃO) 
+CSS................................................(CHAR 3) – (SIGLA DO SISTEMA)
+NAME_ARQ......................................TEXT - (NOME INSERIDO)
+TYPE................................................TEXT - (LOCAL, REMOTO E PADRÃO BNO)
+DSNAME_ARQ..................................TEXT - (DSNAME DO ARQUIVO) 
+EST_INIT..........................................TEXT - (ENABLE, DISABLE E UNENABLED)
+SERVICE.........................................TEXT - (ADD, BROWSE, DELETE, READ E UPDATE)
+NUM_STRNG...................................TEXT – (NÚMERO DE STRING)
+
+
+DCT
+TABELA (DCT)..........PRIMARY KEY
+SITUACAO.......................................TEXT – (CADASTRADO/A CADASTRAR)
+APPLI..............................................TEXT - (AMIENTE CICS)
+USUARIO.........................................TEXT - (MATRICULA SOLICITANTE)
+DIA_HORA ......................................TEXT - (DIA E HORA DA SOLICITAÇÃO)
+OPERACAO.....................................TEXT - (EXCLUIR/ALTERAR)
+RESPONSAVEL................................TEXT - (MATRICULA DO RESPONSSAVEL)
+DIA_HORA_EFETIVAÇÃO..................TEXT – (DIA E HORA DA EFETIVAÇÃO) 
+CSS................................................(CHAR 3) – (SIGLA DO SISTEMA)
+FILE_NAME.....................................TEXT - (NOME INSERIDO)
+QUEUE_TYPE..................................TEXT - (EXTRA, INTRA E INDIRECT)
+DDNAME........................................TEXT - (DDNAME DO ARQUIVO)
+DSNAME.........................................TEXT - (DSNAME DO ARQUIVO)
+EST_FILE........................................TEXT - (INITIAL E DEFERRED)
+FORM_REG....................................TEXT - (FIXED, VARIABLE)
+FORM_REG2..................................TEXT - (BLOCK, UNBLOCK)
+FORM_REG3..................................TEXT - (ASA, MAC)
+FILE_TYPE......................................TEXT - (OUTPUT, INPUT)
+REG_SIZE.......................................TEXT - (TAMANHO DO REGISTRO)
+BLOCK_SIZE...................................TEXT - (TAMANHO DO BLOCO)
+
+
+PCT
+TABELA (PCT)..........PRIMARY KEY
+SITUACAO.......................................TEXT - (CADASTRADO/A CADASTRAR)
+APPLI..............................................TEXT - (AMIENTE CICS)
+USUARIO.........................................TEXT - (MATRICULA SOLICITANTE)
+DIA_HORA ......................................TEXT - (DIA E HORA DA SOLICITAÇÃO)
+OPERACAO.....................................TEXT - (EXCLUIR/ALTERAR)
+RESPONSAVEL................................TEXT - (MATRICULA DO RESPONSSAVEL)
+DIA_HORA_EFETIVAÇÃO..................TEXT - (DIA E HORA DA EFETIVAÇÃO) 
+CSS................................................(CHAR 3) - (SIGLA DO SISTEMA)
+NAME_TRANS..................................TEXT - (NOME INSERIDO)
+ACTIVE_SOFT...................................TEXT – (PROGRAMA PARA ATIVAR)
+TWASIZE..........................................TEXT – (NUMERO 0 DEFAULT)
+EST_INIT...........................................TEXT - (ENABLE, DISABLE)
+COMENT..........................................TEXT – (DESCRIÇÃO)
+PREV................................................TEXT – (DATA DE PREVISÃO)
+DATA_ALLOCATION..........................TEXT - (ANY, BELOW)
+
+
+PPT
+TABELA ( PPT)..........PRIMARY KEY
+SITUACAO.......................................TEXT – (CADASTRADO/A CADASTRAR)
+APPLI..............................................TEXT - (AMIENTE CICS)
+USUARIO.........................................TEXT - (MATRICULA SOLICITANTE)
+DIA_HORA ......................................TEXT - (DIA E HORA DA SOLICITAÇÃO)
+OPERACAO.....................................TEXT - (EXCLUIR/ALTERAR)
+RESPONSAVEL................................TEXT - (MATRICULA DO RESPONSSAVEL)
+DIA_HORA_EFETIVAÇÃO..................TEXT - (DIA E HORA DA EFETIVAÇÃO) 
+CSS................................................(CHAR 3) - (SIGLA DO SISTEMA)
+NAME_SOFT....................................TEXT- (NOME INSERIDO)
+LINK_NAME.....................................TEXT - (NOME DO LINK)
+LANGUAGE.....................................TEXT - (COBOL, ASSEMBLER, C E PLI)
+TYPE...............................................TEXT - (PROGRAMA, MAPA E TABELA)
+EST_INIT..........................................TEXT - (ENABLE, DISABLE)
+DATA_ALLOCATION..........................TEXT - (ANY, BELOW)
+AUTO_ALT........................................TEXT - (SIM/NÃO)

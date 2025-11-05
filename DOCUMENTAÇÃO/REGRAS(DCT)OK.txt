@@ -1,0 +1,39 @@
+Nome da Fila aparece para todos
+ - Deve ter exatamente 4 caracteres.
+ - Não pode começar com a letra 'C'.
+ - Se o sistema for PCG, deve começar com 'P' e os dois últimos caracteres devem coincidir com os dois últimos do nome do sistema (CSS).
+
+Tipo de Fila(EXTRA)
+DDNAME
+ - 'A,INTRDR'
+ - Um nome que começa com 'BPDcss', contém '.S' e '.G00000.'
+
+DSNAME/SYSOUT
+ESTADO DO ARQUIVO(INITIAL OU DEFERRED)
+FORMATO DO REGISTRO(FIXED OU VARIABLE)(BLOCK OU UNBLOCK)(ASA OU MAC)
+TIPO DO ARQUIVO(OUTPUT OU INPUT)
+TAMANHO DO REGISTRO (0)
+ - Deve ser menor que 32768.
+ - Não pode ser zero. 
+TAMANHO DO BLOCO (0)
+ - Se o formato for 'Block', deve ser entre 1 e 32767.
+ - Se o formato for 'Unblock', deve ser 0.
+
+
+ Tipo de Fila(INTRA)
+TRANSAÇÃO (TEXT)
+TRIGLEVEL (1) 
+ - Deve ser maior que zero.
+DESTINO (TERMINAL OU FILE)
+TERMINAL (TEXT)
+ - Obrigatório se o destino for 'Terminal'.
+ - Deve ter 4 caracteres.
+
+
+Tipo de Fila(INDIRECT)
+ASSOCIADO A: (TEXT)
+ - Deve ter 4 caracteres.
+
+REGRAS APLICADAS!!
+
+PROXIMO PASSO REVISAR TODAS AS REGRAS**
