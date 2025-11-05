@@ -1,0 +1,918 @@
+@page "/solicitacoes/nova"
+@using PYBWeb.Domain.Models;
+@using PYBWeb.Infrastructure.Services
+@using PYBWeb.Domain.Entities
+@using PYBWeb.Domain.Interfaces
+@using PYBWeb.Domain.Enums
+@inject ISolicitacaoRepository SolicitacaoRepository
+@inject IAmbienteCicsService AmbienteCicsService
+@inject ISolicitacoesCics2025Service SolicitacoesCics2025Service
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Nova Solicitação CICS - PYB</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 text-primary">
+                <i class="bi bi-plus-circle"></i> Nova Solicitação CICS
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    @if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+    {
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" class="bi flex-shrink-0 me-2" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" role="img" aria-label="Alerta:">
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.964 0L.165 13.233c-.457.778.091 1.767.982 1.767h13.706c.89 0 1.438-.99.982-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-2.002 0 1 1 0 0 1 2.002 0z" />
+            </svg>
+            <div>
+                <strong>Atenção:</strong> As solicitações feitas na sexta-feira serão cadastradas apenas no final da próxima semana.
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Dados da Solicitação</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@model" OnValidSubmit="@SubmitForm" OnInvalidSubmit="@OnInvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger mb-3" />
+
+                        @if (!string.IsNullOrEmpty(mensagemErro))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> @mensagemErro
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(mensagemSucesso))
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i> @mensagemSucesso
+                            </div>
+                        }
+
+                        <!-- Campos Comuns -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted border-bottom pb-2 mb-3">
+                                    <i class="bi bi-gear"></i> Informações Gerais
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="css" class="form-label">Sigla do Sistema <span class="text-danger">*</span></label>
+                                <InputText id="css"
+                                           class="form-control"
+                                           @bind-Value="model.Css"
+                                           @bind-Value:after="UpCssChanged"
+                                           placeholder="CSS"
+                                           maxlength="3"
+                                           style="text-transform:uppercase;" />
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ambiente" class="form-label">Ambiente CICS <span class="text-danger">*</span></label>
+                                <select id="ambiente" class="form-select" @bind="model.AmbienteId" @bind:after="OnAmbienteChanged">
+                                    <option value="0">Selecione o ambiente...</option>
+                                    @if (IsAmbienteTodosDisponivel())
+                                    {
+                                        <option value="-1">TODOS - Todos os ambientes PXU/PXS</option>
+                                    }
+                                    @foreach (var ambiente in ambientes)
+                                    {
+                                        <option value="@ambiente.Id">@ambiente.IdChave - @ambiente.Descricao</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="usuario" class="form-label">Matrícula Solicitante <span class="text-danger">*</span></label>
+                                <InputText id="usuario" class="form-control" @bind-Value="model.Usuario" placeholder="Matrícula" />
+                            </div>
+                        </div>
+
+                        <!-- Tipo da Tabela -->
+                        <div class="row mb-4 align-items-center">
+                            <div class="col-md-4">
+                                <label for="tipoTabela" class="form-label">
+                                    Selecione o Tipo de Tabela <span class="text-danger">*</span>
+                                </label>
+                                <select id="tipoTabela" class="form-select" @bind="model.TipoTabela" @bind:after="OnTipoTabelaChanged">
+                                    <option value="">Selecione o tipo de tabela...</option>
+                                    <option value="FCT">FCT - File Control Table</option>
+                                    <option value="DCT">DCT - Destination Control Table</option>
+                                    <option value="PCT">PCT - Program Control Table</option>
+                                    <option value="PPT">PPT - Processing Program Table</option>
+                                </select>
+                            </div>
+
+                            @if (model.TipoTabela == "PCT")
+                            {
+                                <div class="col-md-8">
+                                    <div class="alert alert-warning d-flex align-items-center w-100 mb-0 py-2" role="alert">
+                                        <svg ...></svg>
+                                        <div>
+                                            <strong>Atenção:</strong> Não esqueça de fazer a avaliação de transação primeiro.
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (model.TipoTabela == "DCT")
+                            {
+                                <div class="col-md-4">
+                                    <label for="queueType" class="form-label">Tipo de Fila</label>
+                                    <select id="queueType" class="form-select" @bind="model.QueueType">
+                                        <option value="">Selecione...</option>
+                                        <option value="EXTRA">EXTRA</option>
+                                        <option value="INTRA">INTRA</option>
+                                        <option value="INDIRECT">INDIRECT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Nome da Fila</label>
+                                    <input type="text" class="form-control" maxlength="4" @bind="model.FileName" />
+                                    <ValidationMessage For="@(() => model.FileName)" />
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Campos de cada Tipo de Tabela -->
+                        @if (model.TipoTabela == "FCT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-file-earmark"></i> Configurações FCT - File Control Table
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="type" class="form-label">Tipo</label>
+                                    <select id="type" class="form-select" @bind="model.Type">
+                                        <option value="">Selecione...</option>
+                                        <option value="LOCAL">LOCAL</option>
+                                        <option value="REMOTO">REMOTO</option>
+                                        <option value="PADRÃO BNO">PADRÃO BNO</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="nameArq" class="form-label">Nome do Arquivo</label>
+                                    <InputText id="nameArq" class="form-control" @bind-Value="model.NameArq" />
+                                    @{
+                                        var mostrarErroNomeArquivo = !string.IsNullOrWhiteSpace(model.NameArq)
+                                            && !string.IsNullOrWhiteSpace(model.Css)
+                                            && !model.NameArq.ToUpper().StartsWith(model.Css.ToUpper());
+                                    }
+                                    @if (mostrarErroNomeArquivo)
+                                    {
+                                        <span class="text-danger small">
+                                            O nome do arquivo deve começar com o valor da CSS.<br/>
+                                            Exemplo: Se CSS = "@model.Css", então Nome do Arquivo deve começar com "@model.Css".
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (model.Type == "LOCAL")
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="dsnameArq" class="form-label">DSNAME do Arquivo</label>
+                                        <InputText id="dsnameArq" class="form-control" @bind-Value="model.DsnameArq" />
+                                        @{
+                                            var mostrarErroDsname = !string.IsNullOrWhiteSpace(model.DsnameArq)
+                                                && !string.IsNullOrWhiteSpace(model.Css)
+                                                && (
+                                                    !model.DsnameArq.ToUpper().StartsWith("BPD" + model.Css.ToUpper())
+                                                    || !model.DsnameArq.ToUpper().Contains(".D")
+                                                    || !model.DsnameArq.ToUpper().Contains(".G00000")
+                                                    || model.DsnameArq.Contains("_")
+                                                );
+                                        }
+                                        @if (mostrarErroDsname)
+                                        {
+                                            <span class="text-danger small">
+                                                O DSNAME deve começar com "BPD@model.Css", conter ".D" e ".G00000", e não pode conter "_".<br />
+                                                Exemplo: BPDPXU.D____.G00000
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="estInit" class="form-label">Estado Inicial</label>
+                                        <select id="estInit" class="form-select" @bind="model.EstInit">
+                                            <option value="">Selecione...</option>
+                                            <option value="ENABLE">ENABLE</option>
+                                            <option value="DISABLE">DISABLE</option>
+                                            <option value="UNENABLED">UNENABLED</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Serviços <span class="text-danger">*</span></label>
+                                        @{
+                                            var servicosDisponiveis = new[] { "ADD", "BROWSE", "DELETE", "READ", "UPDATE" };
+                                        }
+                                        @foreach (var servico in servicosDisponiveis)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input"
+                                                    type="checkbox"
+                                                    id="servico_@servico"
+                                                    checked="@model.Services.Contains(servico)"
+                                                    @onchange="(e) => OnServicoChanged(e, servico)" />
+                                                <label class="form-check-label" for="servico_@servico">@servico</label>
+                                            </div>
+                                        }
+                                        @{
+                                            var mostrarErroServico = model.Services.Count == 0;
+                                        }
+                                        @if (mostrarErroServico)
+                                        {
+                                            <span style="color: #b9b9b9">
+                                                Pelo menos um serviço precisa ser selecionado.
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="numStrng" class="form-label">Número de Strings</label>
+                                        <InputText id="numStrng" class="form-control" @bind-Value="model.NumStrng" />
+
+                                        @{
+                                            int numStrngInt = 0;
+                                            var numStrValido = !string.IsNullOrWhiteSpace(model.NumStrng) && int.TryParse(model.NumStrng, out numStrngInt) && numStrngInt >= 1 && numStrngInt <= 10;
+                                            var browseMarcado = model.Services != null && model.Services.Contains("BROWSE");
+                                            var erroBrowse = browseMarcado && numStrngInt < 3;
+                                            var mostrarErroNumStrng = !numStrValido || erroBrowse;
+                                        }
+                                        @if (mostrarErroNumStrng)
+                                        {
+                                            <span style="color: #b9b9b9">
+                                                O número de strings deve ser um valor entre 1 e 10.
+                                                @if (browseMarcado)
+                                                {
+                                                    <span style="color: #b9b9b9">Se a opção "Browse" estiver marcada, o valor deve ser maior ou igual a 3.</span>
+                                                }
+                                            </span>
+                                        }
+                                </div>
+
+
+
+                                </div>
+
+                            }
+
+                        
+                        }
+                        @if (model.TipoTabela == "PCT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-cpu"></i> Configurações PCT - Program Control Table
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="nameTrans" class="form-label">Nome da Transação</label>
+                                    <InputText id="nameTrans" class="form-control" @bind-Value="model.NameTrans" />
+                                    @{
+                                        var mostrarErroTransacao = !string.IsNullOrWhiteSpace(model.NameTrans)
+                                            && !string.IsNullOrWhiteSpace(model.Css)
+                                            && model.Css.Length >= 2
+                                            && !(model.NameTrans.StartsWith(model.Css.Substring(model.Css.Length - 2), StringComparison.OrdinalIgnoreCase)
+                                                || model.NameTrans.EndsWith(model.Css.Substring(model.Css.Length - 2), StringComparison.OrdinalIgnoreCase));
+                                    }
+                                    @if (mostrarErroTransacao)
+                                    {
+                                        <span class="text-danger small">
+                                            O nome da transação deve começar ou terminar com os dois últimos caracteres do CSS.<br />
+                                            Exemplo: Se CSS = "@model.Css", então deve começar ou terminar com "@model.Css.Substring(model.Css.Length - 2)"
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="activeSoft" class="form-label">Programa para Ativar</label>
+                                    <InputText id="activeSoft" class="form-control" @bind-Value="model.ActiveSoft" />
+                                    @{
+                                        var mostrarErroActiveSoft = !string.IsNullOrWhiteSpace(model.ActiveSoft)
+                                            && !string.IsNullOrWhiteSpace(model.Css)
+                                            && !(model.ActiveSoft.ToUpper().StartsWith(model.Css.ToUpper() + "P") 
+                                                || model.ActiveSoft.ToUpper().StartsWith("PWXP"));
+                                    }
+                                    @if (mostrarErroActiveSoft)
+                                    {
+                                        <span class="text-danger small">
+                                            O programa para ativar deve começar com "@(model.Css)P" ou com "PWXP".
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="twaSize" class="form-label">TWA Size</label>
+                                    <InputText id="twaSize" class="form-control" @bind-Value="model.TwaSize" />
+                                    @{
+                                        var mostrarErroTwa = !string.IsNullOrWhiteSpace(model.TwaSize)
+                                            && (!int.TryParse(model.TwaSize, out var valor) || valor >= 32768);
+                                    }
+                                    @if (mostrarErroTwa)
+                                    {
+                                        <span class="text-danger small">
+                                            TWA Size deve ser menor que 32768.
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="estInitPct" class="form-label">Estado Inicial</label>
+                                    <select id="estInitPct" class="form-select" @bind="model.EstInit">
+                                        <option value="ENABLE">ENABLE</option>
+                                        <option value="DISABLE">DISABLE</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="dataAllocation" class="form-label">Alocação de Dados</label>
+                                    <select id="dataAllocation" class="form-select" @bind="model.DataAllocation">
+                                        <option value="ANY">ANY</option>
+                                        <option value="BELOW">BELOW</option>
+                                    </select>
+                                    @if (model.DataAllocation == "BELOW")
+                                    {
+                                        <div class="mt-2">
+                                            <label for="justificativaBelow" class="form-label">Justificativa <span class="text-danger">*</span></label>
+                                            <InputTextArea id="justificativaBelow" class="form-control" @bind-Value="model.JustificativaBelow" rows="2" />
+
+                                            @{
+                                                var justificativaInicial = ""; // Valor padrão opcional
+                                                var mostrarErroJustificativa = string.IsNullOrWhiteSpace(model.JustificativaBelow)
+                                                    || model.JustificativaBelow == justificativaInicial;
+                                            }
+                                            @if (mostrarErroJustificativa)
+                                            {
+                                                <span class="text-danger small">A justificativa para Below é obrigatória.</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="prev" class="form-label">Previsão execuções por dia <span class="text-danger">*</span></label>
+                                    <InputText id="prev" class="form-control" @bind-Value="model.Prev" placeholder="Número de execuções por dia" />
+
+                                    @{
+                                        var mostrarErroPrev = string.IsNullOrWhiteSpace(model.Prev) || !int.TryParse(model.Prev, out var n) || n <= 0;
+                                    }
+                                    @if (mostrarErroPrev)
+                                    {
+                                        <span class="text-danger small">
+                                            Informe o número estimado de execuções por dia (deve ser um número inteiro maior que zero).
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (model.TipoTabela == "PPT")
+                        {
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-muted border-bottom pb-2 mb-3">
+                                        <i class="bi bi-code-square"></i> Configurações PPT - Processing Program Table
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="nameSoft" class="form-label">Nome do Software</label>
+                                    <InputText id="nameSoft" class="form-control" @bind-Value="model.NameSoft" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="linkName" class="form-label">Nome do Link</label>
+                                    <InputText id="linkName" class="form-control" @bind-Value="model.LinkName" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="language" class="form-label">Linguagem</label>
+                                    <select id="language" class="form-select" @bind="model.Language">
+                                        <option value="">Selecione...</option>
+                                        <option value="COBOL">COBOL</option>
+                                        <option value="ASSEMBLER">ASSEMBLER</option>
+                                        <option value="C">C</option>
+                                        <option value="PLI">PLI</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="typePpt" class="form-label">Tipo</label>
+                                    <select id="typePpt" class="form-select" @bind="model.TypePpt">
+                                        <option value="">Selecione...</option>
+                                        <option value="PROGRAMA">PROGRAMA</option>
+                                        <option value="MAPA">MAPA</option>
+                                        <option value="TABELA">TABELA</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="estInitPpt" class="form-label">Estado Inicial</label>
+                                    <select id="estInitPpt" class="form-select" @bind="model.EstInit">
+                                        <option value="ENABLE">ENABLE</option>
+                                        <option value="DISABLE">DISABLE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="dataAllocationPpt" class="form-label">Alocação de Dados</label>
+                                    <select id="dataAllocationPpt" class="form-select" @bind="model.DataAllocation">
+                                        <option value="ANY">ANY</option>
+                                        <option value="BELOW">BELOW</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="autoAlt" class="form-label">Auto Alteração</label>
+                                    <select id="autoAlt" class="form-select" @bind="model.AutoAlt">
+                                        <option value="">Selecione...</option>
+                                        <option value="SIM">SIM</option>
+                                        <option value="NÃO">NÃO</option>
+                                    </select>
+                                </div>
+                            </div>
+                        }
+
+                        @if (model.TipoTabela == "DCT" && model.QueueType == "EXTRA")
+
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="ddname" class="form-label">DDNAME<span class="text-danger">*</span></label>
+                                    <InputText id="ddname" class="form-control" @bind-Value="model.Ddname" placeholder="Deve ser 'A,INTRDR' ou seguir o padrão BPDcss...S...G00000..."  />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="dsname" class="form-label">DSNAME / SYSOUT<span class="text-danger">*</span></label>
+                                    <InputText id="dsname" class="form-control" @bind-Value="model.Dsname" placeholder="Informe DSNAME ou SYSOUT" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="estFile" class="form-label">Estado do Arquivo<span class="text-danger">*</span></label>
+                                    <select id="estFile" class="form-select" @bind="model.EstFile">
+                                        <option value="">Selecione...</option>
+                                        <option value="INITIAL">INITIAL</option>
+                                        <option value="DEFERRED">DEFERRED</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3 d-flex flex-wrap gap-4 align-items-start">
+                                
+                                <div class="col-auto">
+                                    <label class="form-label d-block">Formato do Registro <span class="text-danger">*</span></label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" id="fixed" name="formReg" @bind="model.FormReg" />
+                                            <label class="btn btn-outline-primary" for="fixed">Fixed</label>
+
+                                            <input type="radio" class="btn-check" id="variable" name="formReg" @bind="model.FormReg" />
+                                            <label class="btn btn-outline-primary" for="variable">Variable</label>
+                                        </div>
+
+
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" id="block" name="formReg2"
+                                                value="BLOCK" @onchange="OnFormReg2Changed" />
+                                            <label class="btn btn-outline-primary" for="block">Block</label>
+
+                                            <input type="radio" class="btn-check" id="unblock" name="formReg2"
+                                                value="UNBLOCK" @onchange="OnFormReg2Changed" />
+                                            <label class="btn btn-outline-primary" for="unblock">Unblock</label>
+                                        </div>
+
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" id="asa" name="formReg3" @bind="model.FormReg3" />
+                                            <label class="btn btn-outline-primary" for="asa">Asa</label>
+
+                                            <input type="radio" class="btn-check" id="mac" name="formReg3" @bind="model.FormReg3" />
+                                            <label class="btn btn-outline-primary" for="mac">Mac</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            
+                                <div class="col-auto">
+                                    <label class="form-label d-block">Tipo do Arquivo <span class="text-danger">*</span></label>
+                                    <div class="btn-group" role="group">
+                                        <input type="radio" class="btn-check" id="output" name="fileType" @bind="model.FileType" />
+                                        <label class="btn btn-outline-primary" for="output">Output</label>
+
+                                        <input type="radio" class="btn-check" id="input" name="fileType" @bind="model.FileType" />
+                                        <label class="btn btn-outline-primary" for="input">Input</label>
+                                    </div>
+                                    <ValidationMessage For="@(() => model.FileType)" />
+                                </div>
+
+                                
+                                <div class="col-auto">
+                                    <label class="form-label d-block">Tamanho do Registro <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" style="width:200px" @bind="model.RegSize" />
+                                    <ValidationMessage For="@(() => model.RegSize)" />
+                                    <small class="text-muted">Deve ser maior que 0.</small>
+                                </div>
+
+                                <div class="col-auto">
+                                    <label class="form-label d-block">Tamanho do Registro <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" style="width:150px" @bind="model.BlockSize" disabled="@IsUnblockSelected" />
+                                </div>
+                            </div>
+
+                        
+
+
+                            @else if (model.TipoTabela == "DCT" && model.QueueType == "INTRA")
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="transacao" class="form-label">Transação <span class="text-danger">*</span></label>
+                                        <InputText id="transacao" class="form-control" @bind-Value="model.Transacao" placeholder="Informe a transação" />
+                                        <ValidationMessage For="@(() => model.Transacao)" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="trigLevel" class="form-label">TrigLevel <span class="text-danger">*</span></label>
+                                        <InputNumber id="trigLevel" class="form-control" @bind-Value="model.TrigLevel" min="1" />
+                                        <ValidationMessage For="@(() => model.TrigLevel)" />
+                                        <small class="text-muted">Deve ser maior que 0</small>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="destino" class="form-label">Destino <span class="text-danger">*</span></label>
+                                        <select id="destino" class="form-select" @bind="model.Destino">
+                                            <option value="">Selecione...</option>
+                                            <option value="TERMINAL">TERMINAL</option>
+                                            <option value="FILE">FILE</option>
+                                        </select>
+                                        <ValidationMessage For="@(() => model.Destino)" />
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="terminal" class="form-label">Terminal <span class="text-danger">*</span></label>
+                                        <InputText id="terminal" class="form-control" @bind-Value="model.Terminal" placeholder="Informe o terminal" />
+                                        <ValidationMessage For="@(() => model.Terminal)" />
+                                    </div>
+                                </div>
+                                
+
+                                @if (!RegrasTabelas.ValidarFilaIntra(model.Transacao, model.TrigLevel, model.Destino, model.Terminal))
+                                {
+                                mensagemErro = "Dados inválidos para fila INTRA.";
+                                return;
+                                }
+
+                            }
+                                @else if (model.TipoTabela == "DCT" && model.QueueType == "INDIRECT")
+                                {
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="formReg" class="form-label">Formato do Registro</label>
+                                        <select id="formReg" class="form-select" @bind="model.FormReg">
+                                            <option value="">Selecione...</option>
+                                            <option value="FIXED">FIXED</option>
+                                            <option value="VARIABLE">VARIABLE</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                }
+                            
+                        }
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr />
+                                <div class="d-flex justify-content-between">
+                                    <a href="/" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Criar Solicitação
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private NovaSolicitacaoCicsModel model = new();
+    private List<AmbienteCics> ambientes = new();
+    private string mensagemErro = "";
+    private string mensagemSucesso = "";
+    private bool showHelp = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarAmbientesAsync();
+    }
+
+    private async Task CarregarAmbientesAsync()
+    {
+        try
+        {
+            var ambientesObtidos = await AmbienteCicsService.ObterAmbientesAtivosAsync();
+            ambientes = ambientesObtidos.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar ambientes: {ex.Message}");
+            ambientes = new List<AmbienteCics>();
+        }
+    }
+
+    private async Task OnAmbienteChanged()
+    {
+        if (model.AmbienteId > 0)
+        {
+            var ambienteSelecionado = await AmbienteCicsService.ObterAmbientePorIdAsync(model.AmbienteId);
+            model.Appli = ambienteSelecionado?.IdChave ?? "";
+        }
+        @else if (model.AmbienteId == -1)
+        {
+            model.Appli = "TODOS";
+        }
+        else
+        {
+            model.Appli = "";
+        }
+    }
+
+    private void OnTipoTabelaChanged()
+    {
+        LimparCamposEspecificos(model.TipoTabela);
+    }
+
+    private void LimparCamposEspecificos(string tipo)
+    {
+        // Zera todos os campos específicos. Deixe só o obrigatório/comum.
+        model.NameArq = null;
+        model.Type = null;
+        model.DsnameArq = null;
+        model.EstInit = null;
+        model.Services = new();
+        model.NumStrng = null;
+        model.FileName = null;
+        model.QueueType = null;
+        model.Ddname = null;
+        model.Dsname = null;
+        model.EstFile = null;
+        model.FormReg = null;
+        model.FormReg2 = null;
+        model.FormReg3 = null;
+        model.FileType = null;
+        model.RegSize = null;
+        model.BlockSize = null;
+        model.NameTrans = null;
+        model.ActiveSoft = null;
+        model.TwaSize = "0";
+        model.Coment = null;
+        model.Prev = null;
+        model.DataAllocation = null;
+        model.JustificativaBelow = null;
+        model.NameSoft = null;
+        model.LinkName = null;
+        model.Language = null;
+        model.TypePpt = null;
+        model.AutoAlt = null;
+        model.Transacao = null;
+        model.TrigLevel = null;
+        model.Destino = null;
+        model.Terminal = null;
+    }
+
+    private void UpCssChanged()
+    {
+        if (!string.IsNullOrEmpty(model.Css))
+        {
+            model.Css = model.Css.ToUpperInvariant();
+            model.Ddname = $"BPD{model.Css}....S....G00000....";
+            model.DsnameArq = $"BPD{model.Css}.D____.G00000";
+        }
+    }
+
+    private void OnServicoChanged(ChangeEventArgs e, string servico)
+    {
+        var marcado = e?.Value?.ToString() == "true";
+        if (marcado)
+        {
+            if (!model.Services.Contains(servico))
+                model.Services.Add(servico);
+        }
+        else
+        {
+            model.Services.Remove(servico);
+        }
+    }
+
+    private bool IsAmbienteTodosDisponivel()
+        => !string.IsNullOrEmpty(model.Css) &&
+           (model.Css.ToUpper() == "PXU" || model.Css.ToUpper() == "PXS");
+
+    private bool IsUnblockSelected => model.FormReg2?.ToUpperInvariant() == "UNBLOCK";
+
+    private void OnFormReg2Changed(ChangeEventArgs e)
+    {
+        model.FormReg2 = e.Value?.ToString();
+        if (model.FormReg2?.ToUpperInvariant() == "UNBLOCK")
+            model.BlockSize = "0";
+    }
+
+    private async Task SubmitForm()
+    {
+        // Validação básica comum
+        if (string.IsNullOrWhiteSpace(model.Css) ||
+            (model.AmbienteId <= 0 && model.AmbienteId != -1) ||
+            string.IsNullOrWhiteSpace(model.Usuario) ||
+            string.IsNullOrWhiteSpace(model.TipoTabela))
+        {
+            mensagemErro = "Preencha os campos obrigatórios da solicitação.";
+            return;
+        }
+
+        // Validação dos campos de cada tipo
+        if (model.TipoTabela == "FCT")
+        {
+            if (!RegrasTabelas.ValidarNomeArquivoFct(model.NameArq, model.Css))
+            {
+                mensagemErro = "O nome do arquivo deve começar com o valor da CSS (em maiúsculas).";
+                return;
+            }
+            if (!RegrasTabelas.ValidarDsnameFct(model.DsnameArq, model.Css))
+            {
+                mensagemErro = "O DSNAME deve começar com BPD + CSS, conter .D, conter .G00000 e não pode ter '_'.";
+                return;
+            }
+            if (model.Services.Count == 0)
+            {
+                mensagemErro = "Selecione pelo menos um dos serviços!";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(model.NumStrng) ||
+                !int.TryParse(model.NumStrng, out int numStrngInt) ||
+                numStrngInt < 1 || numStrngInt > 10)
+            {
+                mensagemErro = "O número de strings deve ser um valor entre 1 e 10.";
+                return;
+            }
+            if (model.Services.Contains("BROWSE") && numStrngInt < 3)
+            {
+                mensagemErro = "Se 'Browse' estiver marcado, o número de strings deve ser maior ou igual a 3.";
+                return;
+            }
+        }
+        if (model.TipoTabela == "PCT")
+        {
+            if (!RegrasTabelas.ValidarNomeTransacao(model.NameTrans, model.Css))
+            {
+                mensagemErro = "O nome da transação deve começar ou terminar com os dois últimos caracteres do CSS.";
+                return;
+            }
+            if (!RegrasTabelas.ValidarProgramaParaAtivar(model.ActiveSoft, model.Css))
+            {
+                mensagemErro = "O programa para ativar deve começar com CSS+P ou com PWXP.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(model.Prev) ||
+                !int.TryParse(model.Prev, out int previsaoExecs) || previsaoExecs <= 0)
+            {
+                mensagemErro = "Preencha a previsão de execuções por dia com um valor inteiro maior que zero.";
+                return;
+            }
+            if (!RegrasTabelas.ValidarTwaSize(model.TwaSize))
+            {
+                mensagemErro = "O campo TWA Size deve ser menor que 32768.";
+                return;
+            }
+            if (model.DataAllocation == "BELOW" &&
+                string.IsNullOrWhiteSpace(model.JustificativaBelow))
+            {
+                mensagemErro = "A justificativa para 'Below' é obrigatória.";
+                return;
+            }
+        }
+        // Adicione aqui as demais validações específicas de DCT/PPT...
+
+        try
+        {
+            var solicitacao = new SolicitacaoCics2025
+            {
+                // Campos comuns
+                AmbienteId = model.AmbienteId,
+                Appli = model.Appli,
+                Usuario = model.Usuario,
+                Css = model.Css,
+                TipoTabela = model.TipoTabela,
+                Status = "Pendente",
+                DataSolicitacao = DateTime.Now,
+
+                // FCT
+                NameArq = model.TipoTabela == "FCT" ? model.NameArq : null,
+                Type = model.TipoTabela == "FCT" ? model.Type : null,
+                DsnameArq = model.TipoTabela == "FCT" ? model.DsnameArq : null,
+                EstInit = model.TipoTabela == "FCT" ? model.EstInit : null,
+                Service = model.TipoTabela == "FCT" ? string.Join(",", model.Services) : null,
+                NumStrng = model.TipoTabela == "FCT" ? model.NumStrng : null,
+
+                // DCT
+                FileName = model.TipoTabela == "DCT" ? model.FileName : null,
+                QueueType = model.TipoTabela == "DCT" ? model.QueueType : null,
+                Ddname = model.TipoTabela == "DCT" ? model.Ddname : null,
+                Dsname = model.TipoTabela == "DCT" ? model.Dsname : null,
+                EstFile = model.TipoTabela == "DCT" ? model.EstFile : null,
+                FormReg = model.TipoTabela == "DCT" ? model.FormReg : null,
+                FormReg2 = model.TipoTabela == "DCT" ? model.FormReg2 : null,
+                FormReg3 = model.TipoTabela == "DCT" ? model.FormReg3 : null,
+                FileType = model.TipoTabela == "DCT" ? model.FileType : null,
+                RegSize = model.TipoTabela == "DCT" ? model.RegSize : null,
+                BlockSize = model.TipoTabela == "DCT" ? model.BlockSize : null,
+
+                // PCT
+                NameTrans = model.TipoTabela == "PCT" ? model.NameTrans : null,
+                ActiveSoft = model.TipoTabela == "PCT" ? model.ActiveSoft : null,
+                TwaSize = model.TipoTabela == "PCT" ? model.TwaSize : null,
+                Coment = model.TipoTabela == "PCT" ? model.Coment : null,
+                Prev = model.TipoTabela == "PCT" ? model.Prev : null,
+                DataAllocation = model.TipoTabela == "PCT" ? model.DataAllocation : null,
+                JustificativaBelow = (model.TipoTabela == "PCT" && model.DataAllocation == "BELOW") ? model.JustificativaBelow : null,
+
+                // PPT
+                NameSoft = model.TipoTabela == "PPT" ? model.NameSoft : null,
+                LinkName = model.TipoTabela == "PPT" ? model.LinkName : null,
+                Language = model.TipoTabela == "PPT" ? model.Language : null,
+                TypePpt = model.TipoTabela == "PPT" ? model.TypePpt : null,
+                AutoAlt = model.TipoTabela == "PPT" ? model.AutoAlt : null,
+
+                // DCT INTRA
+                Transacao = (model.TipoTabela == "DCT" && model.QueueType == "INTRA") ? model.Transacao : null,
+                TrigLevel = (model.TipoTabela == "DCT" && model.QueueType == "INTRA") ? model.TrigLevel : null,
+                Destino = (model.TipoTabela == "DCT" && model.QueueType == "INTRA") ? model.Destino : null,
+                Terminal = (model.TipoTabela == "DCT" && model.QueueType == "INTRA") ? model.Terminal : null
+            };
+
+            var solicitacaoSalva = await SolicitacoesCics2025Service.SalvarSolicitacaoAsync(solicitacao);
+
+            mensagemSucesso = $"Solicitação {solicitacaoSalva.NumeroSolicitacao} criada com sucesso!";
+            mensagemErro = "";
+            StateHasChanged();
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("=== ERRO AO SALVAR SOLICITAÇÃO ===");
+            Console.WriteLine($"Erro: {ex.Message}");
+            if (ex.InnerException != null)
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+
+            mensagemErro = $"Erro ao salvar solicitação: {ex.Message}";
+            mensagemSucesso = "";
+        }
+    }
+
+    private void OnInvalidSubmit()
+    {
+        Console.WriteLine("=== FORMULÁRIO INVÁLIDO ===");
+        mensagemErro = "Por favor, preencha todos os campos obrigatórios!";
+        mensagemSucesso = "";
+        StateHasChanged();
+    }
+
+    void ToggleHelp() => showHelp = !showHelp;
+}
